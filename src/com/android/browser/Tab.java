@@ -331,6 +331,10 @@ class Tab implements PictureListener {
         private boolean providersDiffer(String url, String otherUrl) {
             Uri uri1 = Uri.parse(url);
             Uri uri2 = Uri.parse(otherUrl);
+            // uri1 may be null, we need to judge it.
+            if (uri1.getEncodedAuthority() == null) {
+                return true;
+            }
             return !uri1.getEncodedAuthority().equals(uri2.getEncodedAuthority());
         }
 
