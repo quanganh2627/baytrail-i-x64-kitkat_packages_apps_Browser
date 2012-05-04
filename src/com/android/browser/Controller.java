@@ -586,10 +586,15 @@ public class Controller
      */
     static final void sharePage(Context c, String title, String url,
             Bitmap favicon, Bitmap screenshot) {
+        if (url == null) {
+            return;
+        }
         Intent send = new Intent(Intent.ACTION_SEND);
         send.setType("text/plain");
         send.putExtra(Intent.EXTRA_TEXT, url);
-        send.putExtra(Intent.EXTRA_SUBJECT, title);
+        if (title != null) {
+            send.putExtra(Intent.EXTRA_SUBJECT, title);
+        }
         send.putExtra(Browser.EXTRA_SHARE_FAVICON, favicon);
         send.putExtra(Browser.EXTRA_SHARE_SCREENSHOT, screenshot);
         try {
