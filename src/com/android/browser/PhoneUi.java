@@ -263,6 +263,10 @@ public class PhoneUi extends BaseUi {
     }
 
     void showNavScreen() {
+        if (mActiveTab == null)
+        {
+            return;
+        }
         mShowNav = true;
         mUiController.setBlockEvents(true);
         if (mNavScreen == null) {
