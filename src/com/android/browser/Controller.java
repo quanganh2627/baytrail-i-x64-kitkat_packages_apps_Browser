@@ -1047,7 +1047,7 @@ public class Controller
         WebView w = tab.getWebView();
         DownloadHandler.onDownloadStart(mActivity, url, userAgent,
                 contentDisposition, mimetype, referer, w.isPrivateBrowsingEnabled());
-        if (w.copyBackForwardList().getSize() == 0) {
+        if (!DownloadHandler.isactivitystart && w.copyBackForwardList().getSize() == 0) {
             // This Tab was opened for the sole purpose of downloading a
             // file. Remove it.
             if (tab == mTabControl.getCurrentTab()) {
@@ -1058,6 +1058,7 @@ public class Controller
                 closeTab(tab);
             }
         }
+        DownloadHandler.isactivitystart = false;
     }
 
     @Override
