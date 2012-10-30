@@ -1839,7 +1839,7 @@ class Tab implements PictureListener {
      */
     public boolean saveViewState(ContentValues values) {
         WebViewClassic web = getWebViewClassic();
-        if (web == null) return false;
+        if (web == null || values == null) return false;
         String path = UUID.randomUUID().toString();
         SaveCallback callback = new SaveCallback();
         OutputStream outs = null;
