@@ -2857,6 +2857,7 @@ public class Controller
 
     @Override
     public boolean onSearchRequested() {
+        mUi.onHideCustomView();
         mUi.editUrl(false, true);
         return true;
     }
