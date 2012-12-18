@@ -135,6 +135,7 @@ public class PhoneUi extends BaseUi {
 
     @Override
     public void setActiveTab(final Tab tab) {
+        if (tab == null) return;
         mTitleBar.cancelTitleBarAnimation(true);
         mTitleBar.setSkipTitleBarAnimations(true);
         super.setActiveTab(tab);
