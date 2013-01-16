@@ -18,6 +18,7 @@ package com.android.browser.util;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.os.Process;
@@ -94,16 +95,19 @@ public abstract class ThreadedCursorAdapter<T> extends BaseAdapter {
         mThread = new HandlerThread("threaded_adapter_" + this,
                 Process.THREAD_PRIORITY_BACKGROUND);
         mThread.start();
-        mLoadHandler = new Handler(mThread.getLooper()) {
-            @SuppressWarnings("unchecked")
-            @Override
-            public void handleMessage(Message msg) {
-                if (DEBUG) {
-                    Log.d(LOGTAG, "loading: " + msg.what);
+        Looper handlerLooper = mThread.getLooper();
+        if (handlerLooper != null) {
+            mLoadHandler = new Handler(handlerLooper) {
+                @SuppressWarnings("unchecked")
+                @Override
+                public void handleMessage(Message msg) {
+                    if (DEBUG) {
+                        Log.d(LOGTAG, "loading: " + msg.what);
+                    }
+                    loadRowObject(msg.what, (LoadContainer) msg.obj);
                 }
-                loadRowObject(msg.what, (LoadContainer) msg.obj);
-            }
-        };
+            };
+        }
         mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
