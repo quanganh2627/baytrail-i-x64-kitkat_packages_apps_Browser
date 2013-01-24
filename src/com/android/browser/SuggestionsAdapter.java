@@ -345,6 +345,8 @@ public class SuggestionsAdapter extends BaseAdapter implements Filterable,
         }
 
         void addResult(SuggestItem item) {
+            if (item == null) return;
+            if (item.type < 0 || item.type >= counts.length) return;
             int ix = 0;
             while ((ix < items.size()) && (item.type >= items.get(ix).type))
                 ix++;
