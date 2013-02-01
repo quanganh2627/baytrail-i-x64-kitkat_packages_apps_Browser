@@ -716,7 +716,7 @@ class Tab implements PictureListener {
         public boolean onCreateWindow(WebView view, final boolean dialog,
                 final boolean userGesture, final Message resultMsg) {
             // only allow new window or sub window for the foreground case
-            if (!mInForeground) {
+            if (!mInForeground || isSnapshot()) {
                 return false;
             }
             // Short-circuit if we can't create any more tabs or sub windows.
