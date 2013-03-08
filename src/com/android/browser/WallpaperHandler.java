@@ -143,9 +143,9 @@ public class WallpaperHandler extends Thread
                 Rect srcRect = new Rect(dw,0,bmWidth-dw, bmHeight);
                 Rect destRect = new Rect(0,0,desiredWidth, desiredHeight);
                 Bitmap orgBitmap = BitmapFactory.decodeStream(inputstream);
-                canvas.drawBitmap(orgBitmap, srcRect,
-                            destRect, new Paint(Paint.FILTER_BITMAP_FLAG));
                 if (orgBitmap != null) {
+                    canvas.drawBitmap(orgBitmap, srcRect,
+                            destRect, new Paint(Paint.FILTER_BITMAP_FLAG));
                     orgBitmap.recycle();
                     orgBitmap = null;
                 }
