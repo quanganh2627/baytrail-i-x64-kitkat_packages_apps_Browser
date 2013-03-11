@@ -23,14 +23,10 @@ import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Rect;
-import android.graphics.Paint;
-import android.graphics.Bitmap.Config;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
-import android.view.WindowManager;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -49,8 +45,6 @@ public class WallpaperHandler extends Thread
     // This should be large enough for BitmapFactory to decode the header so
     // that we can mark and reset the input stream to avoid duplicate network i/o
     private static final int BUFFER_SIZE = 128 * 1024;
-
-    private static final int MAX_PIXEL_COUNT = 3 * 1000000; // 3M pixels
 
     private Context mContext;
     private String  mUrl;
@@ -110,28 +104,22 @@ public class WallpaperHandler extends Thread
                 // mess with our mark (currently it sets a mark of 1024)
                 BitmapFactory.decodeStream(
                         new BufferedInputStream(inputstream), null, options);
+                int maxWidth = wm.getDesiredMinimumWidth();
+                int maxHeight = wm.getDesiredMinimumHeight();
+                // Give maxWidth and maxHeight some leeway
+                maxWidth *= 1.25;
+                maxHeight *= 1.25;
                 int bmWidth = options.outWidth;
                 int bmHeight = options.outHeight;
 
-                // Set new DesiredMinimumWidth and DesiredMinimumHeight
-                WindowManager windowManager =
-                   (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
-                int maxHeight = windowManager.getDefaultDisplay().getHeight();
-                int maxWidth = maxHeight;
-                int desiredHeight = maxHeight;
-                float scale = (float)desiredHeight / bmHeight;
-                int desiredWidth = Math.round(scale * bmWidth);
-                int dw = 0;
-                if (desiredWidth >= maxWidth) {
-                    // Crop the 2 edges of image
-                    dw = (int)Math.round((desiredWidth - maxWidth)/scale/2.0);
-                    desiredWidth = maxWidth;
+                int scale = 1;
+                while (bmWidth > maxWidth || bmHeight > maxHeight) {
+                    scale <<= 1;
+                    bmWidth >>= 1;
+                    bmHeight >>= 1;
                 }
-                wm.suggestDesiredDimensions(desiredWidth, desiredHeight);
-
-                // create a new bitmap to setup new wallpaper
-                Bitmap bm = Bitmap.createBitmap(desiredWidth, desiredHeight, Config.ARGB_8888);
-                Canvas canvas = new Canvas(bm);
+                options.inJustDecodeBounds = false;
+                options.inSampleSize = scale;
                 try {
                     inputstream.reset();
                 } catch (IOException e) {
@@ -140,19 +128,10 @@ public class WallpaperHandler extends Thread
                     inputstream.close();
                     inputstream = openStream();
                 }
-                Rect srcRect = new Rect(dw,0,bmWidth-dw, bmHeight);
-                Rect destRect = new Rect(0,0,desiredWidth, desiredHeight);
-                Bitmap orgBitmap = BitmapFactory.decodeStream(inputstream);
-                canvas.drawBitmap(orgBitmap, srcRect,
-                            destRect, new Paint(Paint.FILTER_BITMAP_FLAG));
-                if (orgBitmap != null) {
-                    orgBitmap.recycle();
-                    orgBitmap = null;
-                }
-                canvas.setBitmap(null);
-
-                if (bm != null) {
-                    wm.setBitmap(bm);
+                Bitmap scaledWallpaper = BitmapFactory.decodeStream(inputstream,
+                        null, options);
+                if (scaledWallpaper != null) {
+                    wm.setBitmap(scaledWallpaper);
                 } else {
                     Log.e(LOGTAG, "Unable to set new wallpaper, " +
                             "decodeStream returned null.");
@@ -179,7 +158,6 @@ public class WallpaperHandler extends Thread
             // the new wallpaper.
             int width = oldWallpaper.getIntrinsicWidth();
             int height = oldWallpaper.getIntrinsicHeight();
-            wm.suggestDesiredDimensions(width, height);
             Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
             Canvas canvas = new Canvas(bm);
             oldWallpaper.setBounds(0, 0, width, height);

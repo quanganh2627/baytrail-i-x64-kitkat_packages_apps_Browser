@@ -196,8 +196,6 @@ public class PieControl implements PieMenu.PieController, OnClickListener {
     @Override
     public void onClick(View v) {
         Tab tab = mUiController.getTabControl().getCurrentTab();
-        if (tab == null)
-            return;
         WebView web = tab.getWebView();
         if (mBack.getView() == v) {
             tab.goBack();

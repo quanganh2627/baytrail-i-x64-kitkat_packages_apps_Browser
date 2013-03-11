@@ -439,17 +439,15 @@ public class NavTabScroller extends ScrollerView {
     protected void onOrthoDragFinished(View downView) {
         if (mAnimator != null) return;
         if (mIsOrthoDragged && downView != null) {
-            if (!mEventCancelled) {
-                // offset
-                float diff = mHorizontal ? downView.getTranslationY() : downView.getTranslationX();
-                if ((Math.abs(diff) > (mHorizontal ? downView.getHeight() : downView.getWidth()) / 2)) {
-                    // remove it
-                    animateOut(downView, Math.signum(diff) * mFlingVelocity, diff);
-                    return;
-                }
+            // offset
+            float diff = mHorizontal ? downView.getTranslationY() : downView.getTranslationX();
+            if (Math.abs(diff) > (mHorizontal ? downView.getHeight() : downView.getWidth()) / 2) {
+                // remove it
+                animateOut(downView, Math.signum(diff) * mFlingVelocity, diff);
+            } else {
+                // snap back
+                offsetView(downView, 0);
             }
-            // snap back
-            offsetView(downView, 0);
         }
     }
 

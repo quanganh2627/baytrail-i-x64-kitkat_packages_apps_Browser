@@ -171,8 +171,7 @@ public class UrlHandler {
       // handlers. If webkit can't handle it internally, we need to call
       // startActivityIfNeeded
       Matcher m = UrlUtils.ACCEPTED_URI_SCHEMA.matcher(url);
-      // "rtsp:" need to be dispatched to media player.
-      if (!url.startsWith("rtsp:") && m.matches() && !isSpecializedHandlerAvailable(intent)) {
+      if (m.matches() && !isSpecializedHandlerAvailable(intent)) {
           return false;
       }
       try {
