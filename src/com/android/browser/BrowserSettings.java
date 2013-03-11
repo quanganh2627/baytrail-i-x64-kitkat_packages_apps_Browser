@@ -356,7 +356,8 @@ public class BrowserSettings implements OnSharedPreferenceChangeListener,
             while (iter.hasNext()) {
                 WeakReference<WebSettings> ref = iter.next();
                 WebSettingsClassic settings = (WebSettingsClassic)ref.get();
-                if (settings == null) {
+                if (settings == null || settings.getWebView() == null
+                                  || settings.getWebView().getWebViewCore() == null) {
                     iter.remove();
                     continue;
                 }
