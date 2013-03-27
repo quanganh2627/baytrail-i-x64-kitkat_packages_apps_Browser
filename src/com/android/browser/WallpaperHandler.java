@@ -32,6 +32,9 @@ import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.WindowManager;
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.File;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,8 +52,7 @@ public class WallpaperHandler extends Thread
     // This should be large enough for BitmapFactory to decode the header so
     // that we can mark and reset the input stream to avoid duplicate network i/o
     private static final int BUFFER_SIZE = 128 * 1024;
-
-    private static final int MAX_PIXEL_COUNT = 3 * 1000000; // 3M pixels
+    private static final int MAX_PIXEL_COUNT = 5 * 1000000; // 5M pixels
 
     private Context mContext;
     private String  mUrl;
@@ -113,11 +115,41 @@ public class WallpaperHandler extends Thread
                 int bmWidth = options.outWidth;
                 int bmHeight = options.outHeight;
 
-                // Set new DesiredMinimumWidth and DesiredMinimumHeight
+                // Get windowManager's display height and calculate scale ratio
                 WindowManager windowManager =
                    (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
                 int maxHeight = windowManager.getDefaultDisplay().getHeight();
                 int maxWidth = maxHeight;
+                int intScale = 1;
+                int h = bmHeight;
+                int w = bmWidth;
+                while (h*w > MAX_PIXEL_COUNT) {
+                    intScale *= 2;
+                    h /= 2;
+                    w /= 2;
+                }
+
+                try {
+                    inputstream.reset();
+                } catch (IOException e) {
+                    // BitmapFactory read more than we could buffer
+                    // Re-open the stream
+                    inputstream.close();
+                    inputstream = openStream();
+                }
+
+                // Need to scale down
+                options.inJustDecodeBounds = false;
+                options.inSampleSize = intScale;
+                Bitmap orgBitmap = BitmapFactory.decodeStream(inputstream, null, options);
+                if (bmHeight == options.outWidth && bmWidth == options.outWidth
+                                 && intScale > 1) {
+                    intScale = 1;
+                }
+                bmHeight = options.outHeight;
+                bmWidth = options.outWidth;
+
+                // Set new DesiredMinimumWidth and DesiredMinimumHeight
                 int desiredHeight = maxHeight;
                 float scale = (float)desiredHeight / bmHeight;
                 int desiredWidth = Math.round(scale * bmWidth);
@@ -130,19 +162,11 @@ public class WallpaperHandler extends Thread
                 wm.suggestDesiredDimensions(desiredWidth, desiredHeight);
 
                 // create a new bitmap to setup new wallpaper
-                Bitmap bm = Bitmap.createBitmap(desiredWidth, desiredHeight, Config.ARGB_8888);
+                Bitmap bm = Bitmap.createBitmap(desiredWidth, desiredHeight,
+                                            Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(bm);
-                try {
-                    inputstream.reset();
-                } catch (IOException e) {
-                    // BitmapFactory read more than we could buffer
-                    // Re-open the stream
-                    inputstream.close();
-                    inputstream = openStream();
-                }
                 Rect srcRect = new Rect(dw,0,bmWidth-dw, bmHeight);
                 Rect destRect = new Rect(0,0,desiredWidth, desiredHeight);
-                Bitmap orgBitmap = BitmapFactory.decodeStream(inputstream);
                 if (orgBitmap != null) {
                     canvas.drawBitmap(orgBitmap, srcRect,
                             destRect, new Paint(Paint.FILTER_BITMAP_FLAG));
@@ -150,16 +174,20 @@ public class WallpaperHandler extends Thread
                     orgBitmap = null;
                 }
                 canvas.setBitmap(null);
-
                 if (bm != null) {
                     wm.setBitmap(bm);
+                    if (bm != null) {
+                        bm.recycle();
+                        bm = null;
+                    }
                 } else {
                     Log.e(LOGTAG, "Unable to set new wallpaper, " +
                             "decodeStream returned null.");
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.e(LOGTAG, "Unable to set new wallpaper");
+            e.printStackTrace();
             // Act as though the user canceled the operation so we try to
             // restore the old wallpaper.
             mCanceled = true;
@@ -187,6 +215,10 @@ public class WallpaperHandler extends Thread
             canvas.setBitmap(null);
             try {
                 wm.setBitmap(bm);
+                if (bm != null) {
+                    bm.recycle();
+                    bm = null;
+                }
             } catch (IOException e) {
                 Log.e(LOGTAG, "Unable to restore old wallpaper.");
             }
