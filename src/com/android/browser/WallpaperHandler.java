@@ -119,7 +119,13 @@ public class WallpaperHandler extends Thread
                 WindowManager windowManager =
                    (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
                 int maxHeight = windowManager.getDefaultDisplay().getHeight();
-                int maxWidth = maxHeight;
+                int maxWidth = windowManager.getDefaultDisplay().getWidth();
+
+                if (maxWidth > maxHeight)
+                    maxHeight = maxWidth;
+                else
+                    maxWidth = maxHeight;
+
                 int intScale = 1;
                 int h = bmHeight;
                 int w = bmWidth;
