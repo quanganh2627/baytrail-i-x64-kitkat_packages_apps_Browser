@@ -159,11 +159,19 @@ public class WallpaperHandler extends Thread
                 int desiredHeight = maxHeight;
                 float scale = (float)desiredHeight / bmHeight;
                 int desiredWidth = Math.round(scale * bmWidth);
-                int dw = 0;
+                int dww = 0, dwh = 0;
                 if (desiredWidth >= maxWidth) {
                     // Crop the 2 edges of image
-                    dw = (int)Math.round((desiredWidth - maxWidth)/scale/2.0);
+                    dww = (int)Math.round((desiredWidth - maxWidth)/scale/2.0);
                     desiredWidth = maxWidth;
+                } else {
+                    desiredWidth = maxWidth;
+                    scale = (float)desiredWidth / bmWidth;
+                    desiredHeight = Math.round(scale * bmHeight);
+                    if (desiredHeight >= maxHeight) {
+                        dwh = (int)Math.round((desiredHeight - maxHeight)/scale/2.0);
+                        desiredHeight = maxHeight;
+                    }
                 }
                 wm.suggestDesiredDimensions(desiredWidth, desiredHeight);
 
@@ -171,7 +179,7 @@ public class WallpaperHandler extends Thread
                 Bitmap bm = Bitmap.createBitmap(desiredWidth, desiredHeight,
                                             Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(bm);
-                Rect srcRect = new Rect(dw,0,bmWidth-dw, bmHeight);
+                Rect srcRect = new Rect(dww,dwh,bmWidth-dww, bmHeight-dwh);
                 Rect destRect = new Rect(0,0,desiredWidth, desiredHeight);
                 if (orgBitmap != null) {
                     canvas.drawBitmap(orgBitmap, srcRect,
