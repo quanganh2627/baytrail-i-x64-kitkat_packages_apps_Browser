@@ -98,6 +98,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -259,7 +260,7 @@ public class Controller
 
     @Override
     public void start(final Intent intent) {
-        WebViewClassic.setShouldMonitorWebCoreThread();
+        if (BrowserWebView.isClassic()) WebViewClassic.setShouldMonitorWebCoreThread();
         // mCrashRecoverHandler has any previously saved state.
         mCrashRecoveryHandler.startRecovery(intent);
     }
@@ -355,7 +356,7 @@ public class Controller
         }
         // Read JavaScript flags if it exists.
         String jsFlags = getSettings().getJsEngineFlags();
-        if (jsFlags.trim().length() != 0) {
+        if (jsFlags.trim().length() != 0 && BrowserWebView.isClassic()) {
             WebViewClassic.fromWebView(getCurrentWebView()).setJsFlags(jsFlags);
         }
         if (intent != null
@@ -585,10 +586,15 @@ public class Controller
      */
     static final void sharePage(Context c, String title, String url,
             Bitmap favicon, Bitmap screenshot) {
+        if (url == null) {
+            return;
+        }
         Intent send = new Intent(Intent.ACTION_SEND);
         send.setType("text/plain");
         send.putExtra(Intent.EXTRA_TEXT, url);
-        send.putExtra(Intent.EXTRA_SUBJECT, title);
+        if (title != null) {
+            send.putExtra(Intent.EXTRA_SUBJECT, title);
+        }
         send.putExtra(Browser.EXTRA_SHARE_FAVICON, favicon);
         send.putExtra(Browser.EXTRA_SHARE_SCREENSHOT, screenshot);
         try {
@@ -752,6 +758,10 @@ public class Controller
         if (mUploadHandler != null && !mUploadHandler.handled()) {
             mUploadHandler.onResult(Activity.RESULT_CANCELED, null);
             mUploadHandler = null;
+        }
+        if (sThumbnailBitmap != null) {
+            sThumbnailBitmap.recycle();
+            sThumbnailBitmap = null;
         }
         if (mTabControl == null) return;
         mUi.onDestroy();
@@ -1037,7 +1047,7 @@ public class Controller
         WebView w = tab.getWebView();
         DownloadHandler.onDownloadStart(mActivity, url, userAgent,
                 contentDisposition, mimetype, referer, w.isPrivateBrowsingEnabled());
-        if (w.copyBackForwardList().getSize() == 0) {
+        if (!DownloadHandler.isactivitystart && w.copyBackForwardList().getSize() == 0) {
             // This Tab was opened for the sole purpose of downloading a
             // file. Remove it.
             if (tab == mTabControl.getCurrentTab()) {
@@ -1048,6 +1058,7 @@ public class Controller
                 closeTab(tab);
             }
         }
+        DownloadHandler.isactivitystart = false;
     }
 
     @Override
@@ -1195,7 +1206,12 @@ public class Controller
                     long id = intent.getLongExtra(
                             ComboViewActivity.EXTRA_OPEN_SNAPSHOT, -1);
                     if (id >= 0) {
-                        createNewSnapshotTab(id, true);
+                        if (BrowserWebView.isClassic()) {
+                            createNewSnapshotTab(id, true);
+                        } else {
+                            Toast.makeText(mActivity, "Snapshot Tab requires WebViewClassic",
+                                Toast.LENGTH_LONG).show();
+                        }
                     }
                 }
                 break;
@@ -2229,7 +2245,7 @@ public class Controller
          */
         private File getTarget(DataUri uri) throws IOException {
             File dir = mActivity.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-            DateFormat format = new SimpleDateFormat(IMAGE_BASE_FORMAT);
+            DateFormat format = new SimpleDateFormat(IMAGE_BASE_FORMAT, Locale.US);
             String nameBase = format.format(new Date());
             String mimeType = uri.getMimeType();
             MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
@@ -2256,7 +2272,9 @@ public class Controller
         }
 
         public SelectText(WebView webView) {
-            mWebView = WebViewClassic.fromWebView(webView);
+          if (BrowserWebView.isClassic()) {
+              mWebView = WebViewClassic.fromWebView(webView);
+          }
         }
 
     }
@@ -2544,7 +2562,7 @@ public class Controller
         // In case the user enters nothing.
         if (url != null && url.length() != 0 && tab != null && view != null) {
             url = UrlUtils.smartUrlFilter(url);
-            if (!WebViewClassic.fromWebView(view).getWebViewClient().
+            if (!((BrowserWebView) view).getWebViewClient().
                     shouldOverrideUrlLoading(view, url)) {
                 loadUrl(tab, url);
             }
@@ -2737,14 +2755,14 @@ public class Controller
                 }
                 break;
             case KeyEvent.KEYCODE_A:
-                if (ctrl) {
+                if (ctrl && BrowserWebView.isClassic()) {
                     WebViewClassic.fromWebView(webView).selectAll();
                     return true;
                 }
                 break;
 //          case KeyEvent.KEYCODE_B:    // menu
             case KeyEvent.KEYCODE_C:
-                if (ctrl) {
+                if (ctrl && BrowserWebView.isClassic()) {
                     WebViewClassic.fromWebView(webView).copySelection();
                     return true;
                 }
@@ -2840,6 +2858,7 @@ public class Controller
 
     @Override
     public boolean onSearchRequested() {
+        mUi.onHideCustomView();
         mUi.editUrl(false, true);
         return true;
     }

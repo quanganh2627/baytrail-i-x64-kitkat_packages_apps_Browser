@@ -331,6 +331,10 @@ class Tab implements PictureListener {
         private boolean providersDiffer(String url, String otherUrl) {
             Uri uri1 = Uri.parse(url);
             Uri uri2 = Uri.parse(otherUrl);
+            // uri1 may be null, we need to judge it.
+            if (uri1.getEncodedAuthority() == null) {
+                return true;
+            }
             return !uri1.getEncodedAuthority().equals(uri2.getEncodedAuthority());
         }
 
@@ -712,7 +716,7 @@ class Tab implements PictureListener {
         public boolean onCreateWindow(WebView view, final boolean dialog,
                 final boolean userGesture, final Message resultMsg) {
             // only allow new window or sub window for the foreground case
-            if (!mInForeground) {
+            if (!mInForeground || isSnapshot()) {
                 return false;
             }
             // Short-circuit if we can't create any more tabs or sub windows.
@@ -1126,6 +1130,19 @@ class Tab implements PictureListener {
             mClient.onProgressChanged(view, newProgress);
         }
         @Override
+        public void onShowCustomView(View view, CustomViewCallback callback) {
+            mClient.onShowCustomView(view, callback);
+        }
+        @Override
+        public void onShowCustomView(View view, int requestedOrientation,
+            CustomViewCallback callback) {
+            mClient.onShowCustomView(view, requestedOrientation, callback);
+        }
+        @Override
+        public void onHideCustomView() {
+            mClient.onHideCustomView();
+        }
+        @Override
         public boolean onCreateWindow(WebView view, boolean dialog,
                 boolean userGesture, android.os.Message resultMsg) {
             return mClient.onCreateWindow(view, dialog, userGesture, resultMsg);
@@ -1136,6 +1153,10 @@ class Tab implements PictureListener {
                 Log.e(LOGTAG, "Can't close the window");
             }
             mWebViewController.dismissSubWindow(Tab.this);
+        }
+        @Override
+        public View getVideoLoadingProgressView() {
+            return mClient.getVideoLoadingProgressView();
         }
     }
 
@@ -1293,7 +1314,9 @@ class Tab implements PictureListener {
             // does a redirect after a period of time. The user could have
             // switched to another tab while waiting for the download to start.
             mMainView.setDownloadListener(mDownloadListener);
-            getWebViewClassic().setWebBackForwardListClient(mWebBackForwardListClient);
+            if (BrowserWebView.isClassic()) {
+                getWebViewClassic().setWebBackForwardListClient(mWebBackForwardListClient);
+            }
             TabControl tc = mWebViewController.getTabControl();
             if (tc != null && tc.getOnThumbnailUpdatedListener() != null) {
                 mMainView.setPictureListener(this);
@@ -1315,7 +1338,18 @@ class Tab implements PictureListener {
      * Destroy the tab's main WebView and subWindow if any
      */
     void destroy() {
+        if (mCapture != null)
+        {
+            mCapture.recycle();
+            mCapture = null;
+        }
         if (mMainView != null) {
+            if (mSubView != null)
+            {
+                //remove the Subwindow container first.
+                Controller mController = (Controller)mWebViewController;
+                mController.removeSubWindow(this);
+            }
             dismissSubWindow();
             // save the WebView to call destroy() after detach it from the tab
             WebView webView = mMainView;
@@ -1535,6 +1569,9 @@ class Tab implements PictureListener {
      * @return The main WebView of this tab.
      */
     WebViewClassic getWebViewClassic() {
+        if (!BrowserWebView.isClassic()) {
+            return null;
+        }
         return WebViewClassic.fromWebView(mMainView);
     }
 
@@ -1839,7 +1876,7 @@ class Tab implements PictureListener {
      */
     public boolean saveViewState(ContentValues values) {
         WebViewClassic web = getWebViewClassic();
-        if (web == null) return false;
+        if (web == null || values == null) return false;
         String path = UUID.randomUUID().toString();
         SaveCallback callback = new SaveCallback();
         OutputStream outs = null;
