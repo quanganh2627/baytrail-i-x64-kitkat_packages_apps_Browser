@@ -542,7 +542,10 @@ public abstract class BaseUi implements UI {
 
     @Override
     public void onHideCustomView() {
-        ((BrowserWebView) getWebView()).setVisibility(View.VISIBLE);
+        BrowserWebView current_webview = (BrowserWebView) getWebView();
+        if (current_webview == null)
+            return;
+        current_webview.setVisibility(View.VISIBLE);
         if (mCustomView == null)
             return;
         setFullscreen(false);
