@@ -21,11 +21,8 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.net.ConnectivityManager;
-import android.net.ProxyProperties;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.ContextMenu;
@@ -54,9 +51,6 @@ public class BrowserActivity extends Activity {
 
     private ActivityController mController = NullController.INSTANCE;
 
-    private ProxyProperties mGlobalProxy = null;
-    private boolean mIsGlobalProxyUpdated;
-
     @Override
     public void onCreate(Bundle icicle) {
         if (LOGV_ENABLED) {
@@ -79,54 +73,11 @@ public class BrowserActivity extends Activity {
         mController = createController();
 
         Intent intent = (icicle == null) ? getIntent() : null;
-
-        setProxyIfPresent(intent);
-
         mController.start(intent);
     }
 
     public static boolean isTablet(Context context) {
         return context.getResources().getBoolean(R.bool.isTablet);
-    }
-
-    private ProxyProperties getProxy(String proxy) {
-        String host = proxy;
-        int port = 80;
-
-        if (proxy.contains(":")) {
-            String[] array = proxy.split(":");
-            host = array[0];
-            port = Integer.valueOf(array[1]);
-        }
-
-        return new ProxyProperties(host, port, null);
-    }
-
-    private void setProxyIfPresent(Intent intent) {
-        if (intent != null) {
-            TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-            String proxy = intent.getStringExtra("proxy");
-            if (proxy != null && tm != null
-                    && tm.getDataState() == TelephonyManager.DATA_CONNECTED) {
-                ProxyProperties proxyProperties = getProxy(proxy);
-                if (proxyProperties != null) {
-                    ConnectivityManager cm = (ConnectivityManager)
-                            getSystemService(Context.CONNECTIVITY_SERVICE);
-                    if (cm != null) {
-                        /*
-                         * Note: Global proxy overrides the proxy set for specific networks.
-                         * Other services like youtube, media etc may not be able to access
-                         * the network if the proxy is intended only for a specific browser
-                         * session- Global proxy is reset to the old one upon shutdown of the
-                         * browser activity.
-                         */
-                        mGlobalProxy = cm.getGlobalProxy();
-                        cm.setGlobalProxy(proxyProperties);
-                        mIsGlobalProxyUpdated = true;
-                    }
-                }
-            }
-        }
     }
 
     private Controller createController() {
@@ -160,9 +111,6 @@ public class BrowserActivity extends Activity {
                     .putExtra(EXTRA_STATE, outState));
             return;
         }
-
-        setProxyIfPresent(intent);
-
         mController.handleNewIntent(intent);
     }
 
@@ -238,14 +186,6 @@ public class BrowserActivity extends Activity {
             Log.v(LOGTAG, "BrowserActivity.onDestroy: this=" + this);
         }
         super.onDestroy();
-        if (mIsGlobalProxyUpdated) {
-            ConnectivityManager cm = (ConnectivityManager)
-                    getSystemService(Context.CONNECTIVITY_SERVICE);
-            if (cm != null) {
-                cm.setGlobalProxy(mGlobalProxy);
-            }
-        }
-
         mController.onDestroy();
         mController = NullController.INSTANCE;
     }

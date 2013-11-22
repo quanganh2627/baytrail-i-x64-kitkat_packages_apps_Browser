@@ -586,15 +586,10 @@ public class Controller
      */
     static final void sharePage(Context c, String title, String url,
             Bitmap favicon, Bitmap screenshot) {
-        if (url == null) {
-            return;
-        }
         Intent send = new Intent(Intent.ACTION_SEND);
         send.setType("text/plain");
         send.putExtra(Intent.EXTRA_TEXT, url);
-        if (title != null) {
-            send.putExtra(Intent.EXTRA_SUBJECT, title);
-        }
+        send.putExtra(Intent.EXTRA_SUBJECT, title);
         send.putExtra(Browser.EXTRA_SHARE_FAVICON, favicon);
         send.putExtra(Browser.EXTRA_SHARE_SCREENSHOT, screenshot);
         try {
@@ -758,10 +753,6 @@ public class Controller
         if (mUploadHandler != null && !mUploadHandler.handled()) {
             mUploadHandler.onResult(Activity.RESULT_CANCELED, null);
             mUploadHandler = null;
-        }
-        if (sThumbnailBitmap != null) {
-            sThumbnailBitmap.recycle();
-            sThumbnailBitmap = null;
         }
         if (mTabControl == null) return;
         mUi.onDestroy();
@@ -1047,7 +1038,7 @@ public class Controller
         WebView w = tab.getWebView();
         DownloadHandler.onDownloadStart(mActivity, url, userAgent,
                 contentDisposition, mimetype, referer, w.isPrivateBrowsingEnabled());
-        if (!DownloadHandler.isactivitystart && w.copyBackForwardList().getSize() == 0) {
+        if (w.copyBackForwardList().getSize() == 0) {
             // This Tab was opened for the sole purpose of downloading a
             // file. Remove it.
             if (tab == mTabControl.getCurrentTab()) {
@@ -1058,7 +1049,6 @@ public class Controller
                 closeTab(tab);
             }
         }
-        DownloadHandler.isactivitystart = false;
     }
 
     @Override
@@ -2858,7 +2848,6 @@ public class Controller
 
     @Override
     public boolean onSearchRequested() {
-        mUi.onHideCustomView();
         mUi.editUrl(false, true);
         return true;
     }

@@ -239,9 +239,6 @@ public class PageDialogsHandler {
      */
     private void showSSLCertificate(final Tab tab) {
 
-        if (tab == null) {
-            return;
-        }
         SslCertificate cert = tab.getWebView().getCertificate();
         if (cert == null) {
             return;
@@ -282,9 +279,6 @@ public class PageDialogsHandler {
             final WebView view, final SslErrorHandler handler,
             final SslError error) {
 
-        if (error == null) {
-            return;
-        }
         SslCertificate cert = error.getCertificate();
         if (cert == null) {
             return;

@@ -74,10 +74,6 @@ public class PhoneUi extends BaseUi {
     @Override
     public void onDestroy() {
         hideTitleBar();
-        if (mAnimScreen != null)
-        {
-            mAnimScreen.onDestroy();
-        }
     }
 
     @Override
@@ -135,7 +131,6 @@ public class PhoneUi extends BaseUi {
 
     @Override
     public void setActiveTab(final Tab tab) {
-        if (tab == null) return;
         mTitleBar.cancelTitleBarAnimation(true);
         mTitleBar.setSkipTitleBarAnimations(true);
         super.setActiveTab(tab);
@@ -268,10 +263,6 @@ public class PhoneUi extends BaseUi {
     }
 
     void showNavScreen() {
-        if (mActiveTab == null)
-        {
-            return;
-        }
         mShowNav = true;
         mUiController.setBlockEvents(true);
         if (mNavScreen == null) {
@@ -521,17 +512,6 @@ public class PhoneUi extends BaseUi {
                 c.setBitmap(null);
             }
             mContent.setImageBitmap(mContentBitmap);
-        }
-
-        public void onDestroy() {
-            if (mContentBitmap != null) {
-                mContentBitmap.recycle();
-                mContentBitmap = null;
-            }
-            if (mTitleBarBitmap != null) {
-                mTitleBarBitmap.recycle();
-                mTitleBarBitmap = null;
-            }
         }
 
         private Bitmap safeCreateBitmap(int width, int height) {
