@@ -1036,6 +1036,19 @@ class Tab implements PictureListener {
             mClient.onProgressChanged(view, newProgress);
         }
         @Override
+        public void onShowCustomView(View view, CustomViewCallback callback) {
+            mClient.onShowCustomView(view, callback);
+        }
+        @Override
+        public void onShowCustomView(View view, int requestedOrientation,
+                CustomViewCallback callback) {
+            mClient.onShowCustomView(view, requestedOrientation, callback);
+        }
+        @Override
+        public void onHideCustomView() {
+            mClient.onHideCustomView();
+        }
+        @Override
         public boolean onCreateWindow(WebView view, boolean dialog,
                 boolean userGesture, android.os.Message resultMsg) {
             return mClient.onCreateWindow(view, dialog, userGesture, resultMsg);
@@ -1046,6 +1059,10 @@ class Tab implements PictureListener {
                 Log.e(LOGTAG, "Can't close the window");
             }
             mWebViewController.dismissSubWindow(Tab.this);
+        }
+        @Override
+        public View getVideoLoadingProgressView() {
+            return mClient.getVideoLoadingProgressView();
         }
     }
 
@@ -1224,7 +1241,18 @@ class Tab implements PictureListener {
      * Destroy the tab's main WebView and subWindow if any
      */
     void destroy() {
+        if (mCapture != null)
+        {
+            mCapture.recycle();
+            mCapture = null;
+        }
         if (mMainView != null) {
+            if (mSubView != null)
+            {
+                // remove the Subwindow container first.
+                Controller mController = (Controller)mWebViewController;
+                mController.removeSubWindow(this);
+            }
             dismissSubWindow();
             // save the WebView to call destroy() after detach it from the tab
             WebView webView = mMainView;

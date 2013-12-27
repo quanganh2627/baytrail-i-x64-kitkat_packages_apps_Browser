@@ -74,6 +74,7 @@ public class PhoneUi extends BaseUi {
     @Override
     public void onDestroy() {
         hideTitleBar();
+        mAnimScreen.onDestroy();
     }
 
     @Override
@@ -186,10 +187,6 @@ public class PhoneUi extends BaseUi {
         MenuItem newtab = menu.findItem(R.id.new_tab_menu_id);
         if (newtab != null && !mUseQuickControls) {
             newtab.setVisible(false);
-        }
-        MenuItem incognito = menu.findItem(R.id.incognito_menu_id);
-        if (incognito != null) {
-            incognito.setVisible(showingNavScreen() || mUseQuickControls);
         }
         MenuItem closeOthers = menu.findItem(R.id.close_other_tabs_id);
         if (closeOthers != null) {
@@ -512,6 +509,17 @@ public class PhoneUi extends BaseUi {
                 c.setBitmap(null);
             }
             mContent.setImageBitmap(mContentBitmap);
+        }
+
+        public void onDestroy() {
+            if (mContentBitmap != null) {
+                mContentBitmap.recycle();
+                mContentBitmap = null;
+            }
+            if (mTitleBarBitmap != null) {
+                mTitleBarBitmap.recycle();
+                mTitleBarBitmap = null;
+            }
         }
 
         private Bitmap safeCreateBitmap(int width, int height) {

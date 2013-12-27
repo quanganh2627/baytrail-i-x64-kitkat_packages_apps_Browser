@@ -19,6 +19,7 @@ package com.android.browser;
 
 import android.app.Activity;
 import android.app.SearchManager;
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +31,9 @@ import android.provider.Browser;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Patterns;
+import android.util.Log;
+import android.widget.Toast;
+import android.widget.EditText;
 
 import com.android.browser.UI.ComboViews;
 import com.android.browser.search.SearchEngine;
@@ -107,6 +111,11 @@ public class IntentHandler {
                 urlData = new UrlData(mSettings.getHomePage());
             }
 
+            if (launchRtspIfNeeded(urlData.mUrl)) {
+                Log.i("rtsp", "Launch media player.");
+                return;
+            }
+
             if (intent.getBooleanExtra(Browser.EXTRA_CREATE_NEW_TAB, false)
                   || urlData.isPreloaded()) {
                 Tab t = mController.openTab(urlData);
@@ -181,6 +190,25 @@ public class IntentHandler {
                 mController.loadUrlDataIn(current, urlData);
             }
         }
+    }
+
+    protected boolean launchRtspIfNeeded(String url) {
+        if (!url.startsWith("rtsp://")) {
+            return false;
+        }
+        Log.i("rtsp", "onNewIntent, starts with rtsp, will launch media player.");
+        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url) );
+        i.addCategory(Intent.CATEGORY_BROWSABLE);
+        try {
+            mActivity.startActivityIfNeeded(i, -1);
+        } catch (ActivityNotFoundException ex) {
+            // ignore the error. If no application can handle the URL,
+            // eg about:blank, assume the browser can handle it.
+            Toast.makeText(mActivity,
+                    com.android.internal.R.string.httpErrorUnsupportedScheme,
+                    Toast.LENGTH_LONG).show();
+        }
+        return true;
     }
 
     protected static UrlData getUrlDataFromIntent(Intent intent) {

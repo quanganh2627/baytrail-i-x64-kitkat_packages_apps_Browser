@@ -748,6 +748,10 @@ public class Controller
             mUploadHandler.onResult(Activity.RESULT_CANCELED, null);
             mUploadHandler = null;
         }
+        if (sThumbnailBitmap != null) {
+            sThumbnailBitmap.recycle();
+            sThumbnailBitmap = null;
+        }
         if (mTabControl == null) return;
         mUi.onDestroy();
         // Remove the current tab and sub window
@@ -1032,7 +1036,7 @@ public class Controller
         WebView w = tab.getWebView();
         DownloadHandler.onDownloadStart(mActivity, url, userAgent,
                 contentDisposition, mimetype, referer, w.isPrivateBrowsingEnabled());
-        if (w.copyBackForwardList().getSize() == 0) {
+        if (!DownloadHandler.isactivitystart && w.copyBackForwardList().getSize() == 0) {
             // This Tab was opened for the sole purpose of downloading a
             // file. Remove it.
             if (tab == mTabControl.getCurrentTab()) {
@@ -1043,6 +1047,7 @@ public class Controller
                 closeTab(tab);
             }
         }
+        DownloadHandler.isactivitystart = false;
     }
 
     @Override
@@ -1499,6 +1504,9 @@ public class Controller
 
         final MenuItem forward = menu.findItem(R.id.forward_menu_id);
         forward.setEnabled(canGoForward);
+
+        MenuItem incognito = menu.findItem(R.id.incognito_menu_id);
+        incognito.setEnabled(false);
 
         final MenuItem source = menu.findItem(isInLoad() ? R.id.stop_menu_id
                 : R.id.reload_menu_id);
