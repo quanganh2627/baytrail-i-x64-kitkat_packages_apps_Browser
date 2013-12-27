@@ -748,10 +748,6 @@ public class Controller
             mUploadHandler.onResult(Activity.RESULT_CANCELED, null);
             mUploadHandler = null;
         }
-        if (sThumbnailBitmap != null) {
-            sThumbnailBitmap.recycle();
-            sThumbnailBitmap = null;
-        }
         if (mTabControl == null) return;
         mUi.onDestroy();
         // Remove the current tab and sub window
@@ -1036,7 +1032,7 @@ public class Controller
         WebView w = tab.getWebView();
         DownloadHandler.onDownloadStart(mActivity, url, userAgent,
                 contentDisposition, mimetype, referer, w.isPrivateBrowsingEnabled());
-        if (!DownloadHandler.isactivitystart && w.copyBackForwardList().getSize() == 0) {
+        if (w.copyBackForwardList().getSize() == 0) {
             // This Tab was opened for the sole purpose of downloading a
             // file. Remove it.
             if (tab == mTabControl.getCurrentTab()) {
@@ -1047,7 +1043,6 @@ public class Controller
                 closeTab(tab);
             }
         }
-        DownloadHandler.isactivitystart = false;
     }
 
     @Override

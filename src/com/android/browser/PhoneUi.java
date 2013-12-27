@@ -74,7 +74,6 @@ public class PhoneUi extends BaseUi {
     @Override
     public void onDestroy() {
         hideTitleBar();
-        mAnimScreen.onDestroy();
     }
 
     @Override
@@ -513,17 +512,6 @@ public class PhoneUi extends BaseUi {
                 c.setBitmap(null);
             }
             mContent.setImageBitmap(mContentBitmap);
-        }
-
-        public void onDestroy() {
-            if (mContentBitmap != null) {
-                mContentBitmap.recycle();
-                mContentBitmap = null;
-            }
-            if (mTitleBarBitmap != null) {
-                mTitleBarBitmap.recycle();
-                mTitleBarBitmap = null;
-            }
         }
 
         private Bitmap safeCreateBitmap(int width, int height) {

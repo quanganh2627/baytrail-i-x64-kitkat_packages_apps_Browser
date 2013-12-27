@@ -31,7 +31,7 @@ public class UrlUtils {
     static final Pattern ACCEPTED_URI_SCHEMA = Pattern.compile(
             "(?i)" + // switch on case insensitive matching
             "(" +    // begin group for schema
-            "(?:http|https|file|rtsp):\\/\\/" +
+            "(?:http|https|file):\\/\\/" +
             "|(?:inline|data|about|javascript):" +
             "|(?:.*:.*@)" +
             ")" +

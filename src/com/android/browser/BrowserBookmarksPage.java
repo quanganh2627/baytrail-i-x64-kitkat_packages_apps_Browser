@@ -412,9 +412,6 @@ public class BrowserBookmarksPage extends Fragment implements View.OnCreateConte
         lm.destroyLoader(LOADER_ACCOUNTS);
         for (int id : mBookmarkAdapters.keySet()) {
             lm.destroyLoader(id);
-            BrowserBookmarksAdapter adapter = mBookmarkAdapters.get(id);
-            if (adapter != null)
-                adapter.quit();
         }
         mBookmarkAdapters.clear();
     }

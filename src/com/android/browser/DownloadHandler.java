@@ -43,7 +43,6 @@ public class DownloadHandler {
             com.android.browser.Browser.LOGD_ENABLED;
 
     private static final String LOGTAG = "DLHandler";
-    static boolean isactivitystart = false;
 
     /**
      * Notify the host application a download should be done, or that
@@ -81,7 +80,6 @@ public class DownloadHandler {
                     // someone (other than us) knows how to handle this mime
                     // type with this scheme, don't download.
                     try {
-                        isactivitystart = true;
                         activity.startActivity(intent);
                         return;
                     } catch (ActivityNotFoundException ex) {
