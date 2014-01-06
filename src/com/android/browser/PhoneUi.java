@@ -74,7 +74,8 @@ public class PhoneUi extends BaseUi {
     @Override
     public void onDestroy() {
         hideTitleBar();
-        mAnimScreen.onDestroy();
+        if (mAnimScreen != null)
+            mAnimScreen.onDestroy();
     }
 
     @Override
