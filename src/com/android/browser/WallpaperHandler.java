@@ -110,14 +110,6 @@ public class WallpaperHandler extends Thread
                         new BufferedInputStream(inputstream), null, options);
 
                 scalePicure(options, wm, inputstream);
-                try {
-                    inputstream.reset();
-                } catch (IOException e) {
-                    // BitmapFactory read more than we could buffer
-                    // Re-open the stream
-                    inputstream.close();
-                    inputstream = openStream();
-                }
             }
         } catch (IOException e) {
             Log.e(LOGTAG, "Unable to set new wallpaper");
@@ -189,6 +181,18 @@ public class WallpaperHandler extends Thread
             w /= 2;
         }
 
+        try {
+            inputstream.reset();
+        } catch (IOException e) {
+            // BitmapFactory read more than we could buffer
+            // Re-open the stream
+            try {
+                inputstream.close();
+                inputstream = openStream();
+                } catch (IOException ex) {
+                    Log.e(LOGTAG, "Unable to set new wallpaper");
+                }
+        }
 
         // Need to scale down
         options.inJustDecodeBounds = false;
