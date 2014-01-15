@@ -117,14 +117,6 @@ public class WallpaperHandler extends Thread
             // Act as though the user canceled the operation so we try to
             // restore the old wallpaper.
             mCanceled = true;
-        } finally {
-            if (inputstream != null) {
-                try {
-                    inputstream.close();
-                } catch (IOException e) {
-                    // Ignore
-                }
-            }
         }
 
         if (mCanceled) {
@@ -252,6 +244,14 @@ public class WallpaperHandler extends Thread
             Log.e(LOGTAG, "Unable to set new wallpaper, " +
                     "decodeStream returned null.");
         }
+
+       if (inputstream != null) {
+           try {
+               inputstream.close();
+           } catch (IOException e) {
+               // Ignore
+           }
+       }
     }
 
     /**
