@@ -182,6 +182,8 @@ public class Controller
 
     private boolean mMenuIsDown;
 
+    private boolean mActivityIsFinish = false;
+
     // For select and find, we keep track of the ActionMode so that
     // finish() can be called as desired.
     private ActionMode mActionMode;
@@ -2375,6 +2377,7 @@ public class Controller
             mCrashRecoveryHandler.clearState();
             mTabControl.removeTab(getCurrentTab());
             mActivity.finish();
+            mActivityIsFinish = true;
             return;
         }
         final Tab current = mTabControl.getCurrentTab();
@@ -2519,7 +2522,11 @@ public class Controller
                  * root of the task. So we can use either true or false for
                  * moveTaskToBack().
                  */
-                mActivity.moveTaskToBack(true);
+                if (!mActivityIsFinish) {
+                    mActivity.moveTaskToBack(true);
+                } else {
+                    mActivityIsFinish = false;
+                }
             }
         }
     }
