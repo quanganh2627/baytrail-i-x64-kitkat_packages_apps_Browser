@@ -14,6 +14,7 @@ LOCAL_SRC_FILES := \
         src/com/android/browser/EventLogTags.logtags
 
 LOCAL_PACKAGE_NAME := Browser
+LOCAL_PRIVILEGED_MODULE := true
 
 LOCAL_PROGUARD_FLAG_FILES := proguard.flags
 
