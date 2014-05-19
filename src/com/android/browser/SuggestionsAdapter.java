@@ -21,7 +21,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.StrictMode;
 import android.provider.BrowserContract;
 import android.text.Html;
 import android.text.TextUtils;
@@ -34,7 +33,6 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.util.Log;
 
 import com.android.browser.provider.BrowserProvider2.OmniboxSuggestions;
 import com.android.browser.search.SearchEngine;
@@ -523,8 +521,6 @@ public class SuggestionsAdapter extends BaseAdapter implements Filterable,
             if (mCursor != null) {
                 mCursor.close();
             }
-            Log.d("SuggestionsAdapter", "**BZ183200** (" + Thread.currentThread().getId() + ") runQuery: java threadpolicymask " + StrictMode.getThreadPolicyMask());
-            Log.d("SuggestionsAdapter", "**BZ183200** (" + Thread.currentThread().getId() + ") runQuery: native threadpolicymask " + StrictMode.getThreadNativePolicyMask());
             SearchEngine searchEngine = mSettings.getSearchEngine();
             if (!TextUtils.isEmpty(constraint)) {
                 if (searchEngine != null && searchEngine.supportsSuggestions()) {
