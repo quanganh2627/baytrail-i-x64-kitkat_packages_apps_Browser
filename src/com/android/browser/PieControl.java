@@ -182,8 +182,9 @@ public class PieControl implements PieMenu.PieController, OnClickListener {
         mUrl.addItem(makeFiller());
         mUrl.addItem(makeFiller());
         mPie.addItem(mShowTabs);
+        mShowTabs.addItem(makeFiller());
         mShowTabs.addItem(mClose);
-        mShowTabs.addItem(mIncognito);
+        //mShowTabs.addItem(mIncognito);
         mShowTabs.addItem(mNewTab);
         mShowTabs.addItem(makeFiller());
         mPie.addItem(mBookmarks);
