@@ -33,6 +33,8 @@ import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.URLUtil;
 import android.widget.Toast;
+import java.util.Locale;
+
 
 /**
  * Handle download requests
@@ -94,6 +96,12 @@ public class DownloadHandler {
                         // case
                     }
                 }
+            }
+        }
+        int lastDot = url.lastIndexOf('.');
+        if (lastDot > 0) {
+            if(url.substring(lastDot + 1).toUpperCase(Locale.ROOT).equals("APK")){
+                mimetype = "application/vnd.android.package-archive";
             }
         }
         onDownloadStartNoStream(activity, url, userAgent, contentDisposition,
