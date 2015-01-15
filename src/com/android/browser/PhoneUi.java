@@ -189,7 +189,7 @@ public class PhoneUi extends BaseUi {
         }
         MenuItem incognito = menu.findItem(R.id.incognito_menu_id);
         if (incognito != null) {
-            incognito.setVisible(showingNavScreen() || mUseQuickControls);
+            incognito.setVisible(false);
         }
         MenuItem closeOthers = menu.findItem(R.id.close_other_tabs_id);
         if (closeOthers != null) {
